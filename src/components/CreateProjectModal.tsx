@@ -2,22 +2,26 @@ import { useState } from 'react';
 import { X } from 'lucide-react';
 
 interface CreateProjectModalProps {
-  onSubmit: (name: string, url: string) => void;
+  onSubmit: (name: string, url: string) => void | Promise<void>;
   onClose: () => void;
+  error?: string | null;
 }
 
-export function CreateProjectModal({ onSubmit, onClose }: CreateProjectModalProps) {
+export function CreateProjectModal({ onSubmit, onClose, error }: CreateProjectModalProps) {
   const [name, setName] = useState('');
   const [url, setUrl] = useState('');
+  const [submitting, setSubmitting] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!name.trim() || !url.trim()) return;
+    if (!name.trim() || !url.trim() || submitting) return;
     let finalUrl = url.trim();
     if (!/^https?:\/\//.test(finalUrl)) {
       finalUrl = 'https://' + finalUrl;
     }
-    onSubmit(name.trim(), finalUrl);
+    setSubmitting(true);
+    await onSubmit(name.trim(), finalUrl);
+    setSubmitting(false);
   };
 
   return (
@@ -70,6 +74,12 @@ export function CreateProjectModal({ onSubmit, onClose }: CreateProjectModalProp
             </p>
           </div>
 
+          {error && (
+            <div className="mb-4 px-3 py-2 text-sm text-red-700 bg-red-50 border border-red-200 rounded-lg">
+              {error}
+            </div>
+          )}
+
           <div className="flex gap-3 justify-end">
             <button
               type="button"
@@ -80,10 +90,10 @@ export function CreateProjectModal({ onSubmit, onClose }: CreateProjectModalProp
             </button>
             <button
               type="submit"
-              disabled={!name.trim() || !url.trim()}
+              disabled={!name.trim() || !url.trim() || submitting}
               className="px-4 py-2 text-sm font-medium text-white bg-gray-900 rounded-lg hover:bg-black disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
             >
-              Create Project
+              {submitting ? 'Creating...' : 'Create Project'}
             </button>
           </div>
         </form>

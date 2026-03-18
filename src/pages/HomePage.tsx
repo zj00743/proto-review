@@ -14,6 +14,7 @@ export function HomePage() {
   const navigate = useNavigate();
 
   const [showCreate, setShowCreate] = useState(false);
+  const [createError, setCreateError] = useState<string | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<'active' | 'archived'>('active');
   const [copiedId, setCopiedId] = useState<string | null>(null);
@@ -24,12 +25,17 @@ export function HomePage() {
 
   const handleCreate = async (name: string, url: string) => {
     if (!user) return;
+    setCreateError(null);
     try {
       const project = await createProject(name, url, user);
       setShowCreate(false);
       navigate(`/project/${project.id}`);
-    } catch (err) {
+    } catch (err: unknown) {
+      const msg = (err && typeof err === 'object' && 'message' in err)
+        ? (err as { message: string }).message
+        : String(err);
       console.error('Failed to create project:', err);
+      setCreateError(msg);
     }
   };
 
@@ -161,7 +167,11 @@ export function HomePage() {
 
       {/* Modals */}
       {showCreate && (
-        <CreateProjectModal onSubmit={handleCreate} onClose={() => setShowCreate(false)} />
+        <CreateProjectModal
+          onSubmit={handleCreate}
+          onClose={() => { setShowCreate(false); setCreateError(null); }}
+          error={createError}
+        />
       )}
       {deleteTarget && (
         <ConfirmDialog
