@@ -1,0 +1,15 @@
+{
+  "functions": {
+    "api/proxy.js": {
+      "includeFiles": "public/{bridge.js,html2canvas.min.js}"
+    },
+    "api/proto.js": {
+      "includeFiles": "public/{bridge.js,html2canvas.min.js}"
+    }
+  },
+  "rewrites": [
+    { "source": "/api/proxy", "destination": "/api/proxy" },
+    { "source": "/api/proto/:path*", "destination": "/api/proto" },
+    { "source": "/(.*)", "destination": "/index.html" }
+  ]
+}
